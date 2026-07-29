@@ -17,7 +17,7 @@ fn main() {
             .read_all()
             .unwrap()
             .iter()
-            .for_each(|r| println!("record: {:?}", r)),
+            .for_each(|r| println!("{r}")),
         "append" => {
             if args.len() != 4 {
                 eprintln!("usage: hush-cli append <key> <value>");
@@ -38,9 +38,8 @@ fn main() {
                 .find(&args[2])
                 .unwrap()
                 .iter()
-                .for_each(|r| println!("record: {:?}", r));
+                .for_each(|r| println!("{r}"));
         }
-        // "find" => find()?,
         _ => eprintln!("unknown command"),
     }
 }

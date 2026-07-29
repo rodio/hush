@@ -11,6 +11,8 @@ use hush_derive::Find;
 use std::io::Read;
 use std::io::Seek;
 
+use std::fmt::Display;
+
 use crate::errors::HushError;
 
 const AES_NONCE_SIZE: usize = 12;
@@ -158,6 +160,34 @@ pub enum Record {
         key: SearchableString,
         value: NonSearchableString,
     } = 1, // title key value
+}
+
+impl Display for Record {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Record::KeyValue {
+                deleted,
+                id,
+                key,
+                value,
+            } => write!(
+                f,
+                "Key-value record:\n\tdeleted: {deleted}\n\tid: {id}\n\tkey: {}\n\tvalue: {}",
+                key.0, value.0
+            ),
+            Record::TitleKeyValue {
+                deleted,
+                id,
+                title,
+                key,
+                value,
+            } => write!(
+                f,
+                "Title-key-value record:\n\tdeleted: {deleted}\n\tid: {id}\n\ttitle{}\n\tkey: {}\n\tvalue: {}",
+                title.0, key.0, value.0
+            ),
+        }
+    }
 }
 
 impl Record {
