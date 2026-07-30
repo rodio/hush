@@ -159,7 +159,7 @@ pub enum Record {
         title: SearchableString,
         key: SearchableString,
         value: NonSearchableString,
-    } = 1, // title key value
+    } = 1,
 }
 
 impl Display for Record {
