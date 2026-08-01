@@ -40,6 +40,6 @@ fn main() {
                 .iter()
                 .for_each(|r| println!("{r}"));
         }
-        _ => eprintln!("unknown command. possible commands: read, append"),
+        _ => eprintln!("possible commands: read, append and find"),
     }
 }
