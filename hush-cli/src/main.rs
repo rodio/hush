@@ -7,7 +7,7 @@ const FILE_NAME: &str = "vault";
 fn main() {
     let args = std::env::args().collect::<Vec<String>>();
     if args.len() < 2 {
-        eprintln!("wrong arguments");
+        eprintln!("usage: hush-cli <command> <args>");
         return;
     }
 
