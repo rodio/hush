@@ -6,6 +6,7 @@ mod util;
 use crate::record::Record;
 use crate::record::Records;
 use std::io::{Read, Seek, SeekFrom, Write};
+use std::path::Path;
 
 use aes_gcm::{Aes256Gcm, Key, KeyInit};
 use hush_derive::{Deserialize, Serialize};
@@ -23,7 +24,7 @@ pub struct Hush {
 }
 
 impl Hush {
-    pub fn new(file_name: &str) -> Result<Self, HushError> {
+    pub fn new(file_name: &Path) -> Result<Self, HushError> {
         let mut file = util::open_file(file_name)?;
         file.seek(SeekFrom::Start(COUNTER_SIZE))
             .map_err(|e| HushError::file_seek_error(e, "can't seek existing file"))?;
