@@ -1,45 +1,54 @@
 // use hush::{Hush, Record, open_existing_file};
 
+use clap::{Parser, Subcommand};
 use hush_lib::Hush;
+use std::path::PathBuf;
 
-const FILE_NAME: &str = "vault";
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    /// File to operate on
+    #[arg(short, long, value_name = "vault", default_value = "vault")]
+    file: PathBuf,
+
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Read all records from a file
+    Read {},
+    /// Append a key-value record to a file
+    AppendKv {
+        /// Key
+        key: String,
+        /// Value
+        value: String,
+    },
+    /// Find a record by a search term
+    Find {
+        /// Search term
+        term: String,
+    },
+}
 
 fn main() {
-    let args = std::env::args().collect::<Vec<String>>();
-    if args.len() < 2 {
-        eprintln!("usage: hush-cli <command> <args>");
-        return;
-    }
+    let cli = Cli::parse();
 
-    match args[1].as_str() {
-        "read" => Hush::new(FILE_NAME)
-            .unwrap()
+    let mut hush = Hush::new(&cli.file).unwrap();
+
+    match &cli.command {
+        Commands::Read {} => hush
             .read_all()
             .unwrap()
             .iter()
             .for_each(|r| println!("{r}")),
-        "append" => {
-            if args.len() != 4 {
-                eprintln!("usage: hush-cli append <key> <value>");
-                return;
-            }
-            Hush::new(FILE_NAME)
-                .unwrap()
-                .append_key_value(&args[2], &args[3])
-                .unwrap();
-        }
-        "find" => {
-            if args.len() != 3 {
-                eprintln!("usage: hush-cli find <term>");
-                return;
-            }
-            Hush::new(FILE_NAME)
-                .unwrap()
-                .find(&args[2])
-                .unwrap()
-                .iter()
-                .for_each(|r| println!("{r}"));
-        }
-        _ => eprintln!("possible commands: read, append and find"),
+        Commands::AppendKv { key, value } => hush.append_key_value(key, value).unwrap(),
+        Commands::Find { term } => hush
+            .find(term)
+            .unwrap()
+            .iter()
+            .for_each(|r| println!("{r}")),
     }
 }

@@ -1,10 +1,10 @@
-use std::io::Write;
+use std::{io::Write, path::Path};
 
 use aes_gcm::aead::rand_core::{OsRng, RngCore};
 
-use crate::{errors::HushError, COUNTER_SIZE, PBKDF_SALT_SIZE};
+use crate::{COUNTER_SIZE, PBKDF_SALT_SIZE, errors::HushError};
 
-pub(crate) fn open_file(file_name: &str) -> Result<std::fs::File, HushError> {
+pub(crate) fn open_file(file_name: &Path) -> Result<std::fs::File, HushError> {
     match std::fs::exists(file_name) {
         Ok(true) => (),
         Ok(false) => {
