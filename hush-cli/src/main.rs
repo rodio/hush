@@ -2,6 +2,7 @@
 
 use clap::{Parser, Subcommand};
 use hush_lib::Hush;
+
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -17,16 +18,16 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Read all records from a file
+    /// Read all records from the file
     Read {},
-    /// Append a key-value record to a file
+    /// Append a key-value record to the file
     AppendKv {
         /// Key
         key: String,
         /// Value
         value: String,
     },
-    /// Find a record by a search term
+    /// Find records by a search term
     Find {
         /// Search term
         term: String,
