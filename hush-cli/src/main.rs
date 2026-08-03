@@ -32,6 +32,11 @@ enum Commands {
         /// Search term
         term: String,
     },
+    /// Mark a record as deleted
+    Delete {
+        /// ID of the record to mark as deleted
+        id: u64,
+    },
 }
 
 fn main() {
@@ -46,6 +51,7 @@ fn main() {
             .iter()
             .for_each(|r| println!("{r}")),
         Commands::AppendKv { key, value } => hush.append_key_value(key, value).unwrap(),
+        Commands::Delete { id } => hush.mark_deleted(*id).unwrap(),
         Commands::Find { term } => hush
             .find(term)
             .unwrap()

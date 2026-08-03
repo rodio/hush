@@ -27,6 +27,10 @@ pub enum HushError {
         cause: std::io::Error,
         context: String,
     },
+    FileRename {
+        cause: std::io::Error,
+        context: String,
+    },
 }
 
 impl HushError {
@@ -52,6 +56,12 @@ impl HushError {
     }
     pub fn file_seek_error(cause: std::io::Error, context: &str) -> Self {
         HushError::FileSeek {
+            cause,
+            context: context.to_string(),
+        }
+    }
+    pub fn file_rename_error(cause: std::io::Error, context: &str) -> Self {
+        HushError::FileRename {
             cause,
             context: context.to_string(),
         }
@@ -86,6 +96,9 @@ impl std::fmt::Display for HushError {
             }
             HushError::FileSeek { cause, context } => {
                 write!(f, "can't seek file: {}; context: {}", cause, context)
+            }
+            HushError::FileRename { cause, context } => {
+                write!(f, "can't rename file: {}; context: {}", cause, context)
             }
         }
     }

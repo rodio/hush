@@ -1,11 +1,11 @@
+use crate::Deserialize;
+use crate::PBKDF_SALT_SIZE;
+use crate::Serialize;
 use crate::traits::Find;
 use crate::util;
-use crate::Deserialize;
-use crate::Serialize;
-use crate::PBKDF_SALT_SIZE;
 use aes_gcm::{
-    aead::{Aead, OsRng},
     AeadCore, Aes256Gcm,
+    aead::{Aead, OsRng},
 };
 use hush_derive::Find;
 use std::io::Read;
@@ -197,6 +197,37 @@ impl Record {
             id,
             key: SearchableString(key.to_string()),
             value: NonSearchableString(value.to_string()),
+        }
+    }
+
+    pub(crate) fn id(&self) -> u64 {
+        match self {
+            Record::KeyValue { id, .. } => *id,
+            Record::TitleKeyValue { id, .. } => *id,
+        }
+    }
+
+    pub(crate) fn deleted(self) -> Self {
+        match self {
+            Record::KeyValue { id, key, value, .. } => Self::KeyValue {
+                deleted: 1,
+                id,
+                key,
+                value,
+            },
+            Record::TitleKeyValue {
+                id,
+                title,
+                key,
+                value,
+                ..
+            } => Self::TitleKeyValue {
+                deleted: 1,
+                id,
+                key,
+                title,
+                value,
+            },
         }
     }
 

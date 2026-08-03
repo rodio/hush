@@ -7,6 +7,7 @@ use crate::record::Record;
 use crate::record::Records;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
+use std::path::PathBuf;
 
 use aes_gcm::{Aes256Gcm, Key, KeyInit};
 use hush_derive::{Deserialize, Serialize};
@@ -21,6 +22,7 @@ const PBKDF_SALT_SIZE: usize = 12;
 pub struct Hush {
     cipher: Aes256Gcm,
     file: std::fs::File,
+    file_name: PathBuf,
 }
 
 impl Hush {
@@ -41,7 +43,11 @@ impl Hush {
         //     232, 96, 30, 88, 146, 155, 245, 121, 40, 247, 194, 186, 230, 96,
         // ]);
         let cipher = Aes256Gcm::new(key);
-        Ok(Self { cipher, file })
+        Ok(Self {
+            cipher,
+            file,
+            file_name: file_name.to_path_buf(),
+        })
     }
 
     pub fn read_all(&mut self) -> Result<Vec<Record>, HushError> {
@@ -67,10 +73,55 @@ impl Hush {
     pub fn append_key_value(&mut self, key: &str, value: &str) -> Result<(), HushError> {
         let id = self.increment_counter()?;
         let record = Record::new_key_value(id, key, value);
+        self.append_record(record)
+    }
+
+    fn append_record(&mut self, record: Record) -> Result<(), HushError> {
         self.seek_file_end()?;
         self.file
             .write_all(&record.encrypt(&self.cipher)?.as_bytes())
             .map_err(|e| HushError::file_write_error(e, "can't append record"))
+    }
+
+    pub fn mark_deleted(&mut self, record_id: u64) -> Result<(), HushError> {
+        let orig_filename = self.file_name.clone();
+        let mut temp_filename = orig_filename.clone();
+        temp_filename.as_mut_os_string().push(".temp");
+        let mut bkp_filename = orig_filename.clone();
+        bkp_filename.as_mut_os_string().push(".bkp");
+
+        let mut temp = Hush::new(Path::new(&temp_filename))?;
+        let cipher = self.cipher.clone();
+        for res in self.records()? {
+            let record = res?.decrypt(&cipher)?;
+            if record.id() == record_id {
+                temp.append_record(record.deleted())?;
+            } else {
+                temp.append_record(record)?;
+            }
+        }
+
+        std::fs::rename(&orig_filename, &bkp_filename).map_err(|e| {
+            HushError::file_rename_error(
+                e,
+                &format!(
+                    "can't backup from {} to {}",
+                    orig_filename.display(),
+                    bkp_filename.display()
+                ),
+            )
+        })?;
+
+        std::fs::rename(&temp_filename, &orig_filename).map_err(|e| {
+            HushError::file_rename_error(
+                e,
+                &format!(
+                    "can't rename temporary file from {} to {}",
+                    temp_filename.display(),
+                    orig_filename.display()
+                ),
+            )
+        })
     }
 
     fn seek_file_from_start(&mut self, offset: u64) -> Result<u64, HushError> {

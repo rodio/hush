@@ -15,6 +15,7 @@ Commands:
   read       Read all records from the file
   append-kv  Append a key-value record to the file
   find       Find records by a search term
+  delete     Mark a record as deleted
   help       Print this message or the help of the given subcommand(s)
 
 Options:
